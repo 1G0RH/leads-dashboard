@@ -17,6 +17,7 @@
 | תיקון באג | `fix/<תיאור-קצר>` | `fix/funnel-percent` |
 | תיעוד בלבד | `docs/<תיאור-קצר>` | `docs/update-spec` |
 | עיצוב בלבד | `style/<תיאור-קצר>` | `style/dark-mode-colors` |
+| תחזוקה והגדרות | `chore/<תיאור-קצר>` | `chore/pages-setup` |
 
 שמות ענפים באנגלית, באותיות קטנות ועם מקפים.
 
@@ -107,7 +108,7 @@ gh release create v1.0 --generate-notes
 
 ## GitHub Pages
 
-האתר מתפרסם מהענף `main`, מהתיקייה הראשית. כל מיזוג ל-`main` מעדכן את האתר אחרי דקה או שתיים. לכן `index.html` חייב להישאר בתיקייה הראשית, וכל הנתיבים בקוד יחסיים, כמו `data/mock-data.js` ולא `/data/mock-data.js`.
+האתר מתפרסם מהענף `main`, מהתיקייה הראשית, בכתובת https://1g0rh.github.io/leads-dashboard/. הקובץ הריק `.nojekyll` אומר ל-GitHub לפרסם את הקבצים כמו שהם, בלי לעבד אותם ב-Jekyll. כל מיזוג ל-`main` מעדכן את האתר אחרי דקה או שתיים. לכן `index.html` חייב להישאר בתיקייה הראשית, וכל הנתיבים בקוד יחסיים, כמו `data/mock-data.js` ולא `/data/mock-data.js`.
 
 ## מה Claude Code לא עושה בלי אישור מפורש
 
