@@ -27,6 +27,8 @@
 
 הודעות הקומיט נכתבות באנגלית, בזמן הווה ובמבנה של סוג השינוי, נקודתיים ותקציר. השורה הראשונה היא עד 72 תווים:
 
+</div>
+
 ```text
 feat: add SLA alert for new leads older than 24 hours
 fix: count lost leads in the contacted funnel stage
@@ -35,6 +37,8 @@ style: widen chart labels on mobile
 refactor: move chart helpers to one function
 chore: add .gitignore
 ```
+
+<div dir="rtl">
 
 אם צריך להסביר למה נעשה השינוי, כותבים את זה בגוף ההודעה, אחרי שורה ריקה.
 
@@ -109,6 +113,8 @@ gh release create v1.0 --generate-notes
 
 אם לא ברור איזו גרסה נכונה, עוצרים ושואלים, ולא בוחרים צד באקראי. כך נראים הסימנים בקובץ:
 
+</div>
+
 ```text
 <<<<<<< HEAD
 the version in the current branch
@@ -116,6 +122,8 @@ the version in the current branch
 the version from the branch being merged
 >>>>>>> feature/short-name
 ```
+
+<div dir="rtl">
 
 ## מה לא נכנס לריפו
 
