@@ -106,6 +106,8 @@ export default function App() {
 
   const all = React.useMemo(() => data.leads.map((l) => enrich(l, now)), [data.leads, now])
   const rows = React.useMemo(() => applyFilters(all, filters, now), [all, filters, now])
+  // The quick-filter counts ignore the quick filter itself, so they stay put when an alert is chosen.
+  const quickBase = React.useMemo(() => applyFilters(all, { ...filters, quick: "" }, now), [all, filters, now])
   const owners = React.useMemo(() => [...new Set(data.leads.map((l) => l.owner))].sort((a, b) => a.localeCompare(b, "he")), [data.leads])
 
   const patch = (p: Partial<Filters>) => setFilters((f) => ({ ...f, ...p }))
@@ -198,7 +200,7 @@ export default function App() {
               onNew={() => setNewOpen(true)}
             />
             <SectionCards k={kpis(rows)} days={filters.days} />
-            <AlertsBar counts={alertCounts(rows)} value={filters.quick} onChange={(quick) => patch({ quick })} />
+            <AlertsBar counts={alertCounts(quickBase)} total={quickBase.length} value={filters.quick} onChange={(quick) => patch({ quick })} />
             <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
               <WeeklyChart data={weeklyBuckets(rows, filters.days, now)} />
               <SourceChart
