@@ -113,3 +113,33 @@
 .recharts-surface {
   direction: ltr;
 }
+
+/* Connect button glow (SPEC.md, "המסך", item 1): a slow cycle through
+   blue, violet and teal while the dashboard shows the project data. */
+@keyframes connect-glow {
+  0%,
+  100% {
+    border-color: #3987e5;
+    box-shadow: 0 0 0 1px #3987e5, 0 0 12px 2px rgb(57 135 229 / 0.6);
+  }
+  33% {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 1px #8b5cf6, 0 0 16px 4px rgb(139 92 246 / 0.6);
+  }
+  66% {
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 1px #14b8a6, 0 0 16px 4px rgb(20 184 166 / 0.6);
+  }
+}
+
+.connect-glow {
+  animation: connect-glow 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connect-glow {
+    animation: none;
+    border-color: #3987e5;
+    box-shadow: 0 0 0 2px #3987e5;
+  }
+}
