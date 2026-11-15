@@ -11,9 +11,9 @@ export function SectionCards({ k, days }: { k: Kpis; days: number }) {
     ["לידים בתקופה", fmtNum(k.total), days + " ימים אחרונים", UsersIcon],
     ["אחוז סגירה", k.winRate.toFixed(1) + "%", fmtNum(k.won) + " נסגרו מתוך " + fmtNum(k.total), PercentIcon],
     ["זמן תגובה ראשונה", k.avgResp.toFixed(1) + " שעות", "ממוצע על " + fmtNum(k.responded) + " לידים שקיבלו מענה", ClockIcon],
-    ["שווי בצנרת פתוחה", fmtMoney(k.pipeline), "לידים בשלב מתאים ובשלב הצעת מחיר", WalletIcon],
+    ["שווי בצנרת פתוחה", fmtMoney(k.pipeline), "כל הלידים הפתוחים: חדש, נוצר קשר, מתאים והצעת מחיר", WalletIcon],
     ["שווי עסקאות שנסגרו", fmtMoney(k.wonValue), fmtNum(k.won) + " עסקאות", HandshakeIcon],
-    ["לידים חמים פתוחים", fmtNum(k.hot), "ציון 70 ומעלה", FlameIcon],
+    ["לידים חמים פתוחים", fmtNum(k.hot), "לידים פתוחים עם ציון 70 ומעלה", FlameIcon],
   ]
   return (
     <section

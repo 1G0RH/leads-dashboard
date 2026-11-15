@@ -3,7 +3,17 @@ import type { Budget, RawLead, Source, Status } from "@/data/mock-data"
 export const DAY = 86400000
 export const SLA_HOURS = 24
 export const STALE_DAYS = 7
-const OPEN: Status[] = ["contacted", "qualified", "proposal"]
+
+// Glossary (SPEC.md, "מילון מונחים"). Every KPI, alert and filter uses these
+// three groups, so "open" means the same thing everywhere on the page.
+export const OPEN_STATUSES: readonly Status[] = ["new", "contacted", "qualified", "proposal"]
+export const IN_PROGRESS_STATUSES: readonly Status[] = ["contacted", "qualified", "proposal"]
+export const CLOSED_STATUSES: readonly Status[] = ["won", "lost"]
+export const isOpen = (s: Status) => OPEN_STATUSES.includes(s)
+export const isInProgress = (s: Status) => IN_PROGRESS_STATUSES.includes(s)
+export const isClosed = (s: Status) => CLOSED_STATUSES.includes(s)
+export const HOT_SCORE = 70
+export const WARM_SCORE = 40
 
 export const SOURCE_LABEL: Record<Source, string> = {
   website: "טופס באתר", google_ads: "Google Ads", facebook: "Facebook", referral: "הפניה",
@@ -14,7 +24,7 @@ export const STATUS_LABEL: Record<Status, string> = {
   won: "נסגר", lost: "אבוד",
 }
 export const BUDGET_LABEL: Record<Budget, string> = {
-  small: "עד 4,000 ₪", medium: "4,000 עד 12,000 ₪", large: "12,000 עד 30,000 ₪", enterprise: "מעל 30,000 ₪",
+  small: "עד 4,000 ₪", medium: "בין 4,000 ל-12,000 ₪", large: "בין 12,000 ל-30,000 ₪", enterprise: "מעל 30,000 ₪",
 }
 export type Temp = "hot" | "warm" | "cold" | "closed"
 export const TEMP_LABEL: Record<Temp, string> = { hot: "חם", warm: "פושר", cold: "קר", closed: "סגור" }
@@ -66,13 +76,14 @@ export function enrich(raw: RawLead, now: number, override?: Status): Lead {
   parts.total = parts.source + parts.budget + parts.engagement + parts.recency
 
   let temp: Temp = "cold"
-  if (lead.status === "won" || lead.status === "lost") temp = "closed"
-  else if (parts.total >= 70) temp = "hot"
-  else if (parts.total >= 40) temp = "warm"
+  if (isClosed(lead.status)) temp = "closed"
+  else if (parts.total >= HOT_SCORE) temp = "hot"
+  else if (parts.total >= WARM_SCORE) temp = "warm"
 
   const flags: Flag[] = []
   if (lead.status === "new" && age * 24 > SLA_HOURS) flags.push("sla")
-  if (OPEN.includes(lead.status) && lead.lastContact && ageDays(lead.lastContact) > STALE_DAYS) flags.push("stale")
+  // "No contact" covers leads in progress only; a new lead is covered by the SLA alert.
+  if (isInProgress(lead.status) && lead.lastContact && ageDays(lead.lastContact) > STALE_DAYS) flags.push("stale")
 
   return { ...lead, score: parts.total, scoreParts: parts, temp, flags, next: nextAction(lead.status, temp, flags) }
 }
@@ -119,7 +130,7 @@ export function applyFilters(all: Lead[], f: Filters, now: number) {
     if (f.temp && l.temp !== f.temp) return false
     if (f.quick === "sla" && !l.flags.includes("sla")) return false
     if (f.quick === "stale" && !l.flags.includes("stale")) return false
-    if (f.quick === "hotnew" && !(l.temp === "hot" && l.status === "new")) return false
+    if (f.quick === "hotnew" && !(l.status === "new" && l.score >= HOT_SCORE)) return false
     if (q && !(l.name.toLowerCase().includes(q) || l.company.toLowerCase().includes(q) || l.id.toLowerCase().includes(q))) return false
     return true
   })
@@ -137,9 +148,11 @@ export function kpis(rows: Lead[]) {
     winRate: rows.length ? (won.length / rows.length) * 100 : 0,
     responded: responded.length,
     avgResp,
-    pipeline: rows.filter((l) => l.status === "qualified" || l.status === "proposal").reduce((s, l) => s + l.value, 0),
+    // Pipeline value = every open lead, per the glossary.
+    pipeline: rows.filter((l) => isOpen(l.status)).reduce((s, l) => s + l.value, 0),
     wonValue: won.reduce((s, l) => s + l.value, 0),
-    hot: rows.filter((l) => l.temp === "hot").length,
+    // Hot open lead = open and score >= 70.
+    hot: rows.filter((l) => isOpen(l.status) && l.score >= HOT_SCORE).length,
   }
 }
 
@@ -147,7 +160,7 @@ export function alertCounts(rows: Lead[]) {
   return {
     sla: rows.filter((l) => l.flags.includes("sla")).length,
     stale: rows.filter((l) => l.flags.includes("stale")).length,
-    hotnew: rows.filter((l) => l.temp === "hot" && l.status === "new").length,
+    hotnew: rows.filter((l) => l.status === "new" && l.score >= HOT_SCORE).length,
   }
 }
 

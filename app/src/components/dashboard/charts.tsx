@@ -1,21 +1,86 @@
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, XAxis, YAxis } from "recharts"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import * as React from "react"
+
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { fmtNum, type funnel, type sourceBreakdown, type weeklyBuckets } from "@/lib/leads"
 import type { Source } from "@/data/mock-data"
+
+// Every chart has a "graph / table" switch. The table shows every number the
+// hover tooltip shows, with the same formatting (SPEC.md, acceptance item 10).
+function ChartCard({
+  title,
+  description,
+  className,
+  chart,
+  table,
+}: {
+  title: string
+  description: string
+  className?: string
+  chart: React.ReactNode
+  table: { head: string[]; rows: (string | number)[][] }
+}) {
+  const [view, setView] = React.useState("chart")
+  return (
+    <Card className={className}>
+      <Tabs value={view} onValueChange={setView} className="gap-0">
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+          <CardAction>
+            <TabsList aria-label={"תצוגה: " + title}>
+              <TabsTrigger value="chart">גרף</TabsTrigger>
+              <TabsTrigger value="table">טבלה</TabsTrigger>
+            </TabsList>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="mt-4 px-2 sm:px-6">
+          <TabsContent value="chart">{chart}</TabsContent>
+          <TabsContent value="table">
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader className="bg-muted">
+                  <TableRow>
+                    {table.head.map((h) => (
+                      <TableHead key={h}>{h}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {table.rows.map((r) => (
+                    <TableRow key={String(r[0])}>
+                      {r.map((c, i) => (
+                        <TableCell key={i} className={i > 0 ? "tabular-nums" : "font-medium"}>
+                          {c}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+        </CardContent>
+      </Tabs>
+    </Card>
+  )
+}
 
 const lineConfig = { leads: { label: "לידים חדשים", color: "var(--chart-3)" } } satisfies ChartConfig
 
 export function WeeklyChart({ data }: { data: ReturnType<typeof weeklyBuckets> }) {
   const lastIndex = data.length - 1
   return (
-    <Card className="@container/card lg:col-span-2">
-      <CardHeader>
-        <CardTitle>לידים חדשים לפי שבוע</CardTitle>
-        <CardDescription>כל נקודה היא שבוע שמסתיים בתאריך שעל הציר. ריחוף מראה את מספר הלידים.</CardDescription>
-      </CardHeader>
-      <CardContent className="px-2 sm:px-6">
+    <ChartCard
+      className="@container/card lg:col-span-2"
+      title="לידים חדשים לפי שבוע"
+      description="כל נקודה היא שבוע שמסתיים בתאריך שעל הציר. ריחוף מראה את מספר הלידים, ובתצוגת הטבלה מופיעים כל השבועות."
+      table={{ head: ["שבוע", "לידים חדשים"], rows: data.map((d) => [d.range, fmtNum(d.leads)]) }}
+      chart={
         <ChartContainer config={lineConfig} className="aspect-auto h-[250px] w-full">
           <LineChart accessibilityLayer data={data} margin={{ top: 24, right: 16, left: 4, bottom: 0 }}>
             <CartesianGrid vertical={false} />
@@ -51,8 +116,8 @@ export function WeeklyChart({ data }: { data: ReturnType<typeof weeklyBuckets> }
             />
           </LineChart>
         </ChartContainer>
-      </CardContent>
-    </Card>
+      }
+    />
   )
 }
 
@@ -99,12 +164,14 @@ export function SourceChart({
   onSelect: (s: Source) => void
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>לידים לפי מקור</CardTitle>
-        <CardDescription>ליד כל עמודה: אחוז הסגירה של המקור, ואחריו מספר הלידים. לחיצה על עמודה מסננת לפי המקור.</CardDescription>
-      </CardHeader>
-      <CardContent className="px-2 sm:px-6">
+    <ChartCard
+      title="לידים לפי מקור"
+      description="ליד כל עמודה: אחוז הסגירה של המקור, ואחריו מספר הלידים. לחיצה על עמודה מסננת לפי המקור."
+      table={{
+        head: ["מקור", "לידים", "נסגרו", "אחוז סגירה"],
+        rows: data.map((d) => [d.label, fmtNum(d.leads), fmtNum(d.won), d.rate.toFixed(1) + "%"]),
+      }}
+      chart={
         <ChartContainer config={barConfig} className="aspect-auto h-[270px] w-full">
           <BarChart accessibilityLayer data={data} layout="vertical" margin={{ top: 0, right: 4, left: 84, bottom: 0 }} barCategoryGap={8}>
             <XAxis type="number" dataKey="leads" reversed hide />
@@ -129,8 +196,8 @@ export function SourceChart({
             </Bar>
           </BarChart>
         </ChartContainer>
-      </CardContent>
-    </Card>
+      }
+    />
   )
 }
 
@@ -145,12 +212,14 @@ const funnelConfig = {
 
 export function FunnelChart({ data }: { data: ReturnType<typeof funnel> }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>משפך מכירה</CardTitle>
-        <CardDescription>ליד כל עמודה: האחוז מכל הלידים בתקופה, ואחריו כמה לידים הגיעו לשלב.</CardDescription>
-      </CardHeader>
-      <CardContent className="px-2 sm:px-6">
+    <ChartCard
+      title="משפך מכירה"
+      description="ליד כל עמודה: האחוז מכל הלידים בתקופה, ואחריו כמה לידים הגיעו לשלב."
+      table={{
+        head: ["שלב", "לידים", "מכל הלידים"],
+        rows: data.map((d) => [d.label, fmtNum(d.leads), d.pct.toFixed(1) + "%"]),
+      }}
+      chart={
         <ChartContainer config={funnelConfig} className="aspect-auto h-[270px] w-full">
           <BarChart accessibilityLayer data={data} layout="vertical" margin={{ top: 0, right: 4, left: 84, bottom: 0 }} barCategoryGap={10}>
             <XAxis type="number" dataKey="leads" reversed hide />
@@ -174,7 +243,7 @@ export function FunnelChart({ data }: { data: ReturnType<typeof funnel> }) {
             </Bar>
           </BarChart>
         </ChartContainer>
-      </CardContent>
-    </Card>
+      }
+    />
   )
 }
