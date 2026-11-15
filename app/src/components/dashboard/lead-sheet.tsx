@@ -1,4 +1,4 @@
-import { ArrowLeftIcon } from "lucide-react"
+import { ArrowLeftIcon, CircleAlertIcon } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -15,10 +15,14 @@ export function LeadSheet({
   lead,
   onClose,
   onStatus,
+  saving,
+  error,
 }: {
   lead: Lead | null
   onClose: () => void
   onStatus: (id: string, s: Status) => void
+  saving: boolean
+  error: string | null
 }) {
   return (
     <Sheet open={!!lead} onOpenChange={(open) => !open && onClose()}>
@@ -105,7 +109,7 @@ export function LeadSheet({
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="lead-status">שינוי סטטוס</Label>
-                <Select value={lead.status} onValueChange={(v) => onStatus(lead.id, v as Status)}>
+                <Select value={lead.status} disabled={saving} onValueChange={(v) => onStatus(lead.id, v as Status)}>
                   <SelectTrigger id="lead-status" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -117,7 +121,16 @@ export function LeadSheet({
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">השינוי נשמר רק בדפדפן הזה, כי אלה נתוני דמה.</p>
+                <p className="text-xs text-muted-foreground" aria-live="polite">
+                  {saving ? "שומר ב-Airtable..." : "השינוי נשמר ב-Airtable, ולכן כל מי שפותח את הדשבורד רואה אותו."}
+                </p>
+                {error && (
+                  <Alert variant="destructive">
+                    <CircleAlertIcon />
+                    <AlertTitle>השמירה נכשלה, והסטטוס חזר לקודם</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
               </div>
             </div>
           </>

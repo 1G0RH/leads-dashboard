@@ -8,6 +8,8 @@ export type Budget = "small" | "medium" | "large" | "enterprise"
 
 export interface RawLead {
   id: string
+  /** Airtable record id (rec...), present when the lead came from Airtable. */
+  recordId?: string
   name: string
   company: string
   phone: string

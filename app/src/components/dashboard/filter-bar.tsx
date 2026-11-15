@@ -1,11 +1,10 @@
-import { DownloadIcon, RotateCcwIcon, SearchIcon } from "lucide-react"
+import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { OWNERS } from "@/data/mock-data"
 import { SOURCE_LABEL, STATUS_LABEL, TEMP_LABEL, type Filters } from "@/lib/leads"
 
 const ALL = "all"
@@ -47,14 +46,18 @@ function FilterSelect({
 
 export function FilterBar({
   filters,
+  owners,
   onChange,
   onReset,
   onExport,
+  onNew,
 }: {
   filters: Filters
+  owners: string[]
   onChange: (patch: Partial<Filters>) => void
   onReset: () => void
   onExport: () => void
+  onNew: () => void
 }) {
   return (
     <section aria-label="סינון" className="flex flex-wrap items-end gap-3">
@@ -86,7 +89,7 @@ export function FilterBar({
         id="f-owner"
         label="נציג"
         value={filters.owner}
-        options={OWNERS.map((o) => [o, o])}
+        options={owners.map((o) => [o, o])}
         onChange={(v) => onChange({ owner: v })}
       />
       <FilterSelect
@@ -124,9 +127,13 @@ export function FilterBar({
           <RotateCcwIcon />
           איפוס
         </Button>
-        <Button size="sm" onClick={onExport}>
+        <Button variant="outline" size="sm" onClick={onExport}>
           <DownloadIcon />
           ייצוא CSV
+        </Button>
+        <Button size="sm" onClick={onNew}>
+          <PlusIcon />
+          ליד חדש
         </Button>
       </div>
     </section>
