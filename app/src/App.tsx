@@ -1,5 +1,6 @@
 import * as React from "react"
 import type { SortingState } from "@tanstack/react-table"
+import { CircleAlertIcon, TriangleAlertIcon } from "lucide-react"
 
 import { AlertsBar } from "@/components/dashboard/alerts-bar"
 import { FunnelChart, SourceChart, WeeklyChart } from "@/components/dashboard/charts"
@@ -8,8 +9,12 @@ import { LeadSheet } from "@/components/dashboard/lead-sheet"
 import { LeadsTable } from "@/components/dashboard/leads-table"
 import { SectionCards } from "@/components/dashboard/section-cards"
 import { SiteHeader } from "@/components/dashboard/site-header"
-import { generateLeads } from "@/data/mock-data"
-import { useOverrides } from "@/hooks/use-overrides"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { RawLead, Status } from "@/data/mock-data"
+import { useConnection } from "@/hooks/use-connection"
+import type { SkippedRecord } from "@/lib/airtable"
 import {
   EMPTY_FILTERS,
   SOURCE_LABEL,
@@ -26,9 +31,6 @@ import {
   type Lead,
 } from "@/lib/leads"
 
-const DATA = generateLeads()
-const NOW = new Date(DATA.generatedAt).getTime()
-
 // Same order as the table: by the visible column value, then by creation date.
 function sortRows(rows: Lead[], sorting: SortingState) {
   const s = sorting[0]
@@ -43,16 +45,83 @@ function sortRows(rows: Lead[], sorting: SortingState) {
   })
 }
 
+interface DataState {
+  state: "loading" | "ready" | "error"
+  leads: RawLead[]
+  skipped: SkippedRecord[]
+  fetchedAt: string | null
+  error: string | null
+}
+
+const EMPTY_DATA: DataState = { state: "loading", leads: [], skipped: [], fetchedAt: null, error: null }
+
+function LoadingView() {
+  return (
+    <div className="flex flex-col gap-4" aria-label="טוען נתונים">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-3 2xl:grid-cols-6">
+        {Array.from({ length: 6 }, (_, i) => (
+          <Skeleton key={i} className="h-28 rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="h-10 rounded-lg" />
+      <Skeleton className="h-72 rounded-xl" />
+      <Skeleton className="h-96 rounded-xl" />
+    </div>
+  )
+}
+
 export default function App() {
-  const { overrides, setStatus } = useOverrides()
+  const conn = useConnection()
+  const [data, setData] = React.useState<DataState>(EMPTY_DATA)
+  const [now, setNow] = React.useState(() => Date.now())
   const [filters, setFilters] = React.useState<Filters>(EMPTY_FILTERS)
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "created", desc: true }])
   const [openId, setOpenId] = React.useState<string | null>(null)
+  const [saving, setSaving] = React.useState(false)
+  const [saveError, setSaveError] = React.useState<string | null>(null)
 
-  const all = React.useMemo(() => DATA.leads.map((l) => enrich(l, NOW, overrides[l.id])), [overrides])
-  const rows = React.useMemo(() => applyFilters(all, filters, NOW), [all, filters])
+  const load = React.useCallback(
+    async (refresh = false) => {
+      setData((d) => ({ ...d, state: "loading", error: null }))
+      try {
+        const res = await conn.source.load(refresh)
+        setNow(Date.now())
+        setData({ state: "ready", leads: res.leads, skipped: res.skipped, fetchedAt: res.fetchedAt, error: null })
+      } catch (e) {
+        setData((d) => ({ ...d, state: "error", error: e instanceof Error ? e.message : String(e) }))
+      }
+    },
+    [conn.source],
+  )
+
+  React.useEffect(() => {
+    load()
+  }, [load])
+
+  const all = React.useMemo(() => data.leads.map((l) => enrich(l, now)), [data.leads, now])
+  const rows = React.useMemo(() => applyFilters(all, filters, now), [all, filters, now])
+  const owners = React.useMemo(() => [...new Set(data.leads.map((l) => l.owner))].sort((a, b) => a.localeCompare(b, "he")), [data.leads])
 
   const patch = (p: Partial<Filters>) => setFilters((f) => ({ ...f, ...p }))
+
+  // Status change is written to the data source. The table updates at once,
+  // and goes back to the old value if the save fails (SPEC.md, "המסך").
+  async function changeStatus(id: string, status: Status) {
+    const before = data.leads.find((l) => l.id === id)
+    if (!before || before.status === status) return
+    setSaving(true)
+    setSaveError(null)
+    setData((d) => ({ ...d, leads: d.leads.map((l) => (l.id === id ? { ...l, status } : l)) }))
+    try {
+      const saved = await conn.source.setStatus(before, status)
+      setData((d) => ({ ...d, leads: d.leads.map((l) => (l.id === id ? saved : l)) }))
+    } catch (e) {
+      setData((d) => ({ ...d, leads: d.leads.map((l) => (l.id === id ? before : l)) }))
+      setSaveError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   function exportCsv() {
     const blob = new Blob([toCsv(sortRows(rows, sorting))], { type: "text/csv;charset=utf-8" })
@@ -63,25 +132,88 @@ export default function App() {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000)
   }
 
+  const skippedReasons = [...new Set(data.skipped.map((s) => s.reason))].join(", ")
+
   return (
     <div className="min-h-svh bg-muted/40">
-      <SiteHeader generatedAt={DATA.generatedAt} />
+      <SiteHeader
+        status={{ kind: conn.source.kind, state: data.state, count: data.leads.length, fetchedAt: data.fetchedAt }}
+        onRefresh={() => load(true)}
+        onConnect={() => {}}
+      />
       <main className="mx-auto flex max-w-screen-2xl flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6">
-        <FilterBar filters={filters} onChange={patch} onReset={() => setFilters(EMPTY_FILTERS)} onExport={exportCsv} />
-        <SectionCards k={kpis(rows)} days={filters.days} />
-        <AlertsBar counts={alertCounts(rows)} value={filters.quick} onChange={(quick) => patch({ quick })} />
-        <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
-          <WeeklyChart data={weeklyBuckets(rows, filters.days, NOW)} />
-          <SourceChart
-            data={sourceBreakdown(rows)}
-            selected={filters.source}
-            onSelect={(s) => patch({ source: filters.source === s ? "" : s })}
-          />
-          <FunnelChart data={funnel(rows)} />
-        </div>
-        <LeadsTable rows={rows} sorting={sorting} onSortingChange={setSorting} onOpen={setOpenId} />
+        {data.state === "error" && (
+          <Alert variant="destructive">
+            <CircleAlertIcon />
+            <AlertTitle>לא הצלחנו לטעון את הלידים</AlertTitle>
+            <AlertDescription>
+              <p>{data.error}</p>
+              <div className="mt-2 flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => load()}>
+                  נסו שוב
+                </Button>
+                {conn.source.kind === "own" && (
+                  <Button size="sm" variant="ghost" onClick={conn.disconnect}>
+                    חזרה לנתוני הפרויקט
+                  </Button>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        {data.skipped.length > 0 && data.state === "ready" && (
+          <Alert>
+            <TriangleAlertIcon className="text-status-warning" />
+            <AlertTitle>{data.skipped.length} רשומות דולגו</AlertTitle>
+            <AlertDescription>אי אפשר לחשב להן ציון. הסיבות: {skippedReasons}.</AlertDescription>
+          </Alert>
+        )}
+
+        {data.state === "loading" && !data.leads.length ? (
+          <LoadingView />
+        ) : data.leads.length ? (
+          <>
+            <FilterBar
+              filters={filters}
+              owners={owners}
+              onChange={patch}
+              onReset={() => setFilters(EMPTY_FILTERS)}
+              onExport={exportCsv}
+            />
+            <SectionCards k={kpis(rows)} days={filters.days} />
+            <AlertsBar counts={alertCounts(rows)} value={filters.quick} onChange={(quick) => patch({ quick })} />
+            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
+              <WeeklyChart data={weeklyBuckets(rows, filters.days, now)} />
+              <SourceChart
+                data={sourceBreakdown(rows)}
+                selected={filters.source}
+                onSelect={(s) => patch({ source: filters.source === s ? "" : s })}
+              />
+              <FunnelChart data={funnel(rows)} />
+            </div>
+            <LeadsTable rows={rows} sorting={sorting} onSortingChange={setSorting} onOpen={setOpenId} />
+          </>
+        ) : null}
       </main>
-      <LeadSheet lead={all.find((l) => l.id === openId) ?? null} onClose={() => setOpenId(null)} onStatus={setStatus} />
+      <LeadSheet
+        lead={all.find((l) => l.id === openId) ?? null}
+        onClose={() => {
+          setOpenId(null)
+          setSaveError(null)
+        }}
+        onStatus={changeStatus}
+        saving={saving}
+        error={saveError}
+      />
+      <ConnectionDialog
+        open={connectOpen}
+        onOpenChange={setConnectOpen}
+        connected={conn.config}
+        saved={conn.saved}
+        onConnect={conn.connect}
+        onDisconnect={conn.disconnect}
+        onForget={conn.forget}
+      />
     </div>
   )
 }
