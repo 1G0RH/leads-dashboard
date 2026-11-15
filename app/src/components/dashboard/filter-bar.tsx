@@ -1,4 +1,4 @@
-import { DownloadIcon, RotateCcwIcon, SearchIcon } from "lucide-react"
+import { DownloadIcon, PlusIcon, RotateCcwIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,12 +50,14 @@ export function FilterBar({
   onChange,
   onReset,
   onExport,
+  onNew,
 }: {
   filters: Filters
   owners: string[]
   onChange: (patch: Partial<Filters>) => void
   onReset: () => void
   onExport: () => void
+  onNew: () => void
 }) {
   return (
     <section aria-label="סינון" className="flex flex-wrap items-end gap-3">
@@ -125,9 +127,13 @@ export function FilterBar({
           <RotateCcwIcon />
           איפוס
         </Button>
-        <Button size="sm" onClick={onExport}>
+        <Button variant="outline" size="sm" onClick={onExport}>
           <DownloadIcon />
           ייצוא CSV
+        </Button>
+        <Button size="sm" onClick={onNew}>
+          <PlusIcon />
+          ליד חדש
         </Button>
       </div>
     </section>

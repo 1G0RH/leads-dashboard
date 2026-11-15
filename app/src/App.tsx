@@ -8,6 +8,7 @@ import { ConnectionDialog } from "@/components/dashboard/connection-dialog"
 import { FilterBar } from "@/components/dashboard/filter-bar"
 import { LeadSheet } from "@/components/dashboard/lead-sheet"
 import { LeadsTable } from "@/components/dashboard/leads-table"
+import { NewLeadDialog } from "@/components/dashboard/new-lead-dialog"
 import { SectionCards } from "@/components/dashboard/section-cards"
 import { SiteHeader } from "@/components/dashboard/site-header"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -16,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import type { RawLead, Status } from "@/data/mock-data"
 import { useConnection } from "@/hooks/use-connection"
 import type { SkippedRecord } from "@/lib/airtable"
+import { nextLeadId, type NewLeadInput } from "@/lib/data-source"
 import {
   EMPTY_FILTERS,
   SOURCE_LABEL,
@@ -79,6 +81,7 @@ export default function App() {
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "created", desc: true }])
   const [openId, setOpenId] = React.useState<string | null>(null)
   const [connectOpen, setConnectOpen] = React.useState(false)
+  const [newOpen, setNewOpen] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
   const [saveError, setSaveError] = React.useState<string | null>(null)
 
@@ -123,6 +126,14 @@ export default function App() {
     } finally {
       setSaving(false)
     }
+  }
+
+  // New lead: saved to the data source first, then shown, with its card open.
+  async function createLead(input: NewLeadInput) {
+    const saved = await conn.source.create(input)
+    setData((d) => ({ ...d, leads: [saved, ...d.leads] }))
+    setNow(Date.now())
+    setOpenId(saved.id)
   }
 
   function exportCsv() {
@@ -181,6 +192,7 @@ export default function App() {
               onChange={patch}
               onReset={() => setFilters(EMPTY_FILTERS)}
               onExport={exportCsv}
+              onNew={() => setNewOpen(true)}
             />
             <SectionCards k={kpis(rows)} days={filters.days} />
             <AlertsBar counts={alertCounts(rows)} value={filters.quick} onChange={(quick) => patch({ quick })} />
@@ -206,6 +218,13 @@ export default function App() {
         onStatus={changeStatus}
         saving={saving}
         error={saveError}
+      />
+      <NewLeadDialog
+        open={newOpen}
+        onOpenChange={setNewOpen}
+        owners={owners}
+        nextId={nextLeadId(data.leads)}
+        onCreate={createLead}
       />
       <ConnectionDialog
         open={connectOpen}
