@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { fmtNum, type funnel, type sourceBreakdown, type weeklyBuckets } from "@/lib/leads"
 import type { Source } from "@/data/mock-data"
+import { cn } from "@/lib/utils"
 
 // Every chart has a "graph / table" switch. The table shows every number the
 // hover tooltip shows, with the same formatting (SPEC.md, acceptance item 10).
@@ -26,11 +27,11 @@ function ChartCard({
 }) {
   const [view, setView] = React.useState("chart")
   return (
-    <Card className={className}>
+    <Card className={cn("gap-0 py-3 shadow-xs", className)}>
       <Tabs value={view} onValueChange={setView} className="gap-0">
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+        <CardHeader className="gap-1 px-3">
+          <CardTitle className="text-sm">{title}</CardTitle>
+          <CardDescription className="text-xs leading-snug">{description}</CardDescription>
           <CardAction>
             <TabsList aria-label={"תצוגה: " + title}>
               <TabsTrigger value="chart">גרף</TabsTrigger>
@@ -38,7 +39,7 @@ function ChartCard({
             </TabsList>
           </CardAction>
         </CardHeader>
-        <CardContent className="mt-4 px-2 sm:px-6">
+        <CardContent className="mt-2 px-2 sm:px-3">
           <TabsContent value="chart">{chart}</TabsContent>
           <TabsContent value="table">
             <div className="overflow-hidden rounded-lg border">
@@ -76,12 +77,12 @@ export function WeeklyChart({ data }: { data: ReturnType<typeof weeklyBuckets> }
   const lastIndex = data.length - 1
   return (
     <ChartCard
-      className="@container/card lg:col-span-2"
+      className="@container/card"
       title="לידים חדשים לפי שבוע"
       description="כל נקודה היא שבוע שמסתיים בתאריך שעל הציר. ריחוף מראה את מספר הלידים, ובתצוגת הטבלה מופיעים כל השבועות."
       table={{ head: ["שבוע", "לידים חדשים"], rows: data.map((d) => [d.range, fmtNum(d.leads)]) }}
       chart={
-        <ChartContainer config={lineConfig} className="aspect-auto h-[250px] w-full">
+        <ChartContainer config={lineConfig} className="aspect-auto h-[170px] w-full">
           <LineChart accessibilityLayer data={data} margin={{ top: 24, right: 16, left: 4, bottom: 0 }}>
             <CartesianGrid vertical={false} />
             <XAxis dataKey="week" tickLine={false} axisLine={false} tickMargin={8} minTickGap={24} />
@@ -172,7 +173,7 @@ export function SourceChart({
         rows: data.map((d) => [d.label, fmtNum(d.leads), fmtNum(d.won), d.rate.toFixed(1) + "%"]),
       }}
       chart={
-        <ChartContainer config={barConfig} className="aspect-auto h-[270px] w-full">
+        <ChartContainer config={barConfig} className="aspect-auto h-[220px] w-full">
           <BarChart accessibilityLayer data={data} layout="vertical" margin={{ top: 0, right: 4, left: 84, bottom: 0 }} barCategoryGap={8}>
             <XAxis type="number" dataKey="leads" reversed hide />
             <YAxis type="category" dataKey="label" orientation="right" tickLine={false} axisLine={false} width={92} />
@@ -220,7 +221,7 @@ export function FunnelChart({ data }: { data: ReturnType<typeof funnel> }) {
         rows: data.map((d) => [d.label, fmtNum(d.leads), d.pct.toFixed(1) + "%"]),
       }}
       chart={
-        <ChartContainer config={funnelConfig} className="aspect-auto h-[270px] w-full">
+        <ChartContainer config={funnelConfig} className="aspect-auto h-[170px] w-full">
           <BarChart accessibilityLayer data={data} layout="vertical" margin={{ top: 0, right: 4, left: 84, bottom: 0 }} barCategoryGap={10}>
             <XAxis type="number" dataKey="leads" reversed hide />
             <YAxis type="category" dataKey="label" orientation="right" tickLine={false} axisLine={false} width={92} />

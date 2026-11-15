@@ -52,7 +52,7 @@ export function SiteHeader({
   const dark = resolved === "dark"
   return (
     <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur supports-backdrop-filter:bg-background/70">
-      <div className="mx-auto flex min-h-14 max-w-screen-2xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 lg:px-6">
+      <div className="mx-auto flex min-h-12 max-w-screen-2xl flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-1.5 lg:px-4">
         <h1 className="flex items-center gap-2 text-base font-semibold whitespace-nowrap">
           <DatabaseIcon className="size-4 text-muted-foreground" aria-hidden />
           ניהול לידים חכם

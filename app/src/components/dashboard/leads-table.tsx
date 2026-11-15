@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { SOURCE_LABEL, STATUS_LABEL, TEMP_LABEL, fmtDate, fmtNum, type Lead, type Temp } from "@/lib/leads"
 import { cn } from "@/lib/utils"
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 20
 
 const features = tableFeatures({
   rowPaginationFeature,
@@ -112,19 +112,19 @@ export function LeadsTable({
   const pageCount = Math.max(1, table.getPageCount())
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
+    <Card className="gap-3 py-3 shadow-xs">
+      <CardHeader className="gap-1 px-3">
+        <CardTitle className="text-sm">
           לידים <span className="font-normal text-muted-foreground">({fmtNum(rows.length)})</span>
         </CardTitle>
-        <CardDescription>לחיצה על שורה פותחת את כרטיס הליד. לחיצה על כותרת עמודה ממיינת.</CardDescription>
-        <CardAction className="text-sm text-muted-foreground tabular-nums">
+        <CardDescription className="text-xs">לחיצה על שורה פותחת את כרטיס הליד. לחיצה על כותרת עמודה ממיינת.</CardDescription>
+        <CardAction className="text-xs text-muted-foreground tabular-nums">
           עמוד {pagination.pageIndex + 1} מתוך {pageCount}
         </CardAction>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="overflow-hidden rounded-lg border">
-          <Table>
+      <CardContent className="flex flex-col gap-3 px-3">
+        <div className="overflow-hidden rounded-md border">
+          <Table className="text-[13px]">
             <TableHeader className="bg-muted">
               {table.getHeaderGroups().map((hg) => (
                 <TableRow key={hg.id}>
@@ -134,13 +134,14 @@ export function LeadsTable({
                     return (
                       <TableHead
                         key={header.id}
+                        className="h-9"
                         aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : undefined}
                       >
                         {canSort ? (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="-ms-2 h-8 px-2 font-medium"
+                            className="-ms-2 h-7 px-2 text-[13px] font-medium"
                             onClick={header.column.getToggleSortingHandler()}
                           >
                             <FlexRender header={header} />
@@ -174,7 +175,7 @@ export function LeadsTable({
                     }}
                   >
                     {row.getAllCells().map((cell) => (
-                      <TableCell key={cell.id} className={cn(cell.column.id === "next" && "min-w-48 whitespace-normal")}>
+                      <TableCell key={cell.id} className={cn("px-2 py-1.5", cell.column.id === "next" && "min-w-44 whitespace-normal")}>
                         <FlexRender cell={cell} />
                       </TableCell>
                     ))}
