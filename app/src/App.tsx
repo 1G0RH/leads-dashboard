@@ -4,6 +4,7 @@ import { CircleAlertIcon, TriangleAlertIcon } from "lucide-react"
 
 import { AlertsBar } from "@/components/dashboard/alerts-bar"
 import { FunnelChart, SourceChart, WeeklyChart } from "@/components/dashboard/charts"
+import { ConnectionDialog } from "@/components/dashboard/connection-dialog"
 import { FilterBar } from "@/components/dashboard/filter-bar"
 import { LeadSheet } from "@/components/dashboard/lead-sheet"
 import { LeadsTable } from "@/components/dashboard/leads-table"
@@ -77,6 +78,7 @@ export default function App() {
   const [filters, setFilters] = React.useState<Filters>(EMPTY_FILTERS)
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "created", desc: true }])
   const [openId, setOpenId] = React.useState<string | null>(null)
+  const [connectOpen, setConnectOpen] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
   const [saveError, setSaveError] = React.useState<string | null>(null)
 
@@ -139,7 +141,7 @@ export default function App() {
       <SiteHeader
         status={{ kind: conn.source.kind, state: data.state, count: data.leads.length, fetchedAt: data.fetchedAt }}
         onRefresh={() => load(true)}
-        onConnect={() => {}}
+        onConnect={() => setConnectOpen(true)}
       />
       <main className="mx-auto flex max-w-screen-2xl flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6">
         {data.state === "error" && (
@@ -204,6 +206,15 @@ export default function App() {
         onStatus={changeStatus}
         saving={saving}
         error={saveError}
+      />
+      <ConnectionDialog
+        open={connectOpen}
+        onOpenChange={setConnectOpen}
+        connected={conn.config}
+        saved={conn.saved}
+        onConnect={conn.connect}
+        onDisconnect={conn.disconnect}
+        onForget={conn.forget}
       />
     </div>
   )
