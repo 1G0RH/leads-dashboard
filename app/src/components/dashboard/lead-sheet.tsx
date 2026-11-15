@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import type { Status } from "@/data/mock-data"
-import { BUDGET_LABEL, SOURCE_LABEL, STATUS_LABEL, fmtMoney, type Lead } from "@/lib/leads"
+import { Money } from "@/lib/currency"
+import { BUDGET_LABEL, SOURCE_LABEL, STATUS_LABEL, type Lead } from "@/lib/leads"
 import { TempBadge } from "./leads-table"
 
 export function LeadSheet({
@@ -48,7 +49,7 @@ export function LeadSheet({
                     ["נציג", lead.owner],
                     ["מתעניין ב", lead.interest],
                     ["תקציב", BUDGET_LABEL[lead.budget]],
-                    ["שווי משוער", fmtMoney(lead.value)],
+                    ["שווי משוער", <Money value={lead.value} />],
                     ["נוצר", new Date(lead.created).toLocaleString("he-IL")],
                     ["קשר אחרון", lead.lastContact ? new Date(lead.lastContact).toLocaleDateString("he-IL") : "עוד לא"],
                     ["זמן תגובה ראשונה", lead.firstResponseHours != null ? lead.firstResponseHours + " שעות" : "עוד לא נענה"],

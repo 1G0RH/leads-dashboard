@@ -2,17 +2,19 @@ import { ClockIcon, FlameIcon, HandshakeIcon, PercentIcon, UsersIcon, WalletIcon
 import type { LucideIcon } from "lucide-react"
 
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { fmtMoney, fmtNum, type kpis } from "@/lib/leads"
+import { useCurrency } from "@/lib/currency"
+import { fmtNum, type kpis } from "@/lib/leads"
 
 type Kpis = ReturnType<typeof kpis>
 
 export function SectionCards({ k, days }: { k: Kpis; days: number }) {
+  const { money } = useCurrency()
   const items: [string, string, string, LucideIcon][] = [
     ["לידים בתקופה", fmtNum(k.total), days + " ימים אחרונים", UsersIcon],
     ["אחוז סגירה", k.winRate.toFixed(1) + "%", fmtNum(k.won) + " נסגרו מתוך " + fmtNum(k.total), PercentIcon],
     ["זמן תגובה ראשונה", k.avgResp.toFixed(1) + " שעות", "ממוצע על " + fmtNum(k.responded) + " לידים שקיבלו מענה", ClockIcon],
-    ["שווי בצנרת פתוחה", fmtMoney(k.pipeline), "כל הלידים הפתוחים: חדש, נוצר קשר, מתאים והצעת מחיר", WalletIcon],
-    ["שווי עסקאות שנסגרו", fmtMoney(k.wonValue), fmtNum(k.won) + " עסקאות", HandshakeIcon],
+    ["שווי בצנרת פתוחה", money(k.pipeline), "כל הלידים הפתוחים: חדש, נוצר קשר, מתאים והצעת מחיר", WalletIcon],
+    ["שווי עסקאות שנסגרו", money(k.wonValue), fmtNum(k.won) + " עסקאות", HandshakeIcon],
     ["לידים חמים פתוחים", fmtNum(k.hot), "לידים פתוחים עם ציון 70 ומעלה", FlameIcon],
   ]
   return (

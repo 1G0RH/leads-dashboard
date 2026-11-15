@@ -15,8 +15,9 @@ import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRi
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Money } from "@/lib/currency"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { SOURCE_LABEL, STATUS_LABEL, TEMP_LABEL, fmtDate, fmtMoney, fmtNum, type Lead, type Temp } from "@/lib/leads"
+import { SOURCE_LABEL, STATUS_LABEL, TEMP_LABEL, fmtDate, fmtNum, type Lead, type Temp } from "@/lib/leads"
 import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 15
@@ -75,7 +76,7 @@ const columns = col.columns([
     ),
   }),
   col.accessor("created", { header: "נוצר", cell: ({ row }) => <span className="tabular-nums">{fmtDate(row.original.created)}</span> }),
-  col.accessor("value", { header: "שווי", cell: ({ row }) => <span className="tabular-nums">{fmtMoney(row.original.value)}</span> }),
+  col.accessor("value", { header: "שווי", cell: ({ row }) => <Money value={row.original.value} /> }),
   col.accessor("next", { header: "פעולה הבאה", enableSorting: false }),
 ])
 

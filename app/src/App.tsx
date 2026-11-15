@@ -5,6 +5,7 @@ import { CircleAlertIcon, TriangleAlertIcon } from "lucide-react"
 import { AlertsBar } from "@/components/dashboard/alerts-bar"
 import { FunnelChart, SourceChart, WeeklyChart } from "@/components/dashboard/charts"
 import { ConnectionDialog } from "@/components/dashboard/connection-dialog"
+import { CurrencySelect } from "@/components/dashboard/currency-select"
 import { FilterBar } from "@/components/dashboard/filter-bar"
 import { LeadSheet } from "@/components/dashboard/lead-sheet"
 import { LeadsTable } from "@/components/dashboard/leads-table"
@@ -153,7 +154,9 @@ export default function App() {
         status={{ kind: conn.source.kind, state: data.state, count: data.leads.length, fetchedAt: data.fetchedAt }}
         onRefresh={() => load(true)}
         onConnect={() => setConnectOpen(true)}
-      />
+      >
+        <CurrencySelect />
+      </SiteHeader>
       <main className="mx-auto flex max-w-screen-2xl flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6">
         {data.state === "error" && (
           <Alert variant="destructive">
