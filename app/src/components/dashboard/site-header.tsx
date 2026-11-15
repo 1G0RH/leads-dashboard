@@ -64,7 +64,13 @@ export function SiteHeader({
             <RefreshCwIcon className={cn(status.state === "loading" && "animate-spin")} />
             <span className="hidden sm:inline">רענון</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={onConnect}>
+          {/* Glows while the project data is shown, so a visitor finds the connect button first. */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onConnect}
+            className={cn(status.kind === "project" && "connect-glow")}
+          >
             <PlugIcon />
             <span className="hidden sm:inline">חיבור ל-Airtable</span>
             <span className="sm:hidden">Airtable</span>
