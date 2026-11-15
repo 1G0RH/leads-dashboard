@@ -205,15 +205,6 @@ export default function App() {
         saving={saving}
         error={saveError}
       />
-      <ConnectionDialog
-        open={connectOpen}
-        onOpenChange={setConnectOpen}
-        connected={conn.config}
-        saved={conn.saved}
-        onConnect={conn.connect}
-        onDisconnect={conn.disconnect}
-        onForget={conn.forget}
-      />
     </div>
   )
 }
