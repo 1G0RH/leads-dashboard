@@ -1,7 +1,6 @@
 import { ClockIcon, FlameIcon, HandshakeIcon, PercentIcon, UsersIcon, WalletIcon } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
-import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCurrency } from "@/lib/currency"
 import { fmtNum, type kpis } from "@/lib/leads"
 
@@ -20,19 +19,17 @@ export function SectionCards({ k, days }: { k: Kpis; days: number }) {
   return (
     <section
       aria-label="מדדים"
-      className="grid grid-cols-2 gap-3 md:gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 dark:*:data-[slot=card]:bg-card"
+      className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border shadow-xs md:grid-cols-3 xl:grid-cols-6"
     >
       {items.map(([label, value, note, Icon]) => (
-        <Card key={label} className="@container/card gap-3 py-4 sm:gap-4 sm:py-5">
-          <CardHeader className="px-4 sm:px-5">
-            <CardDescription>{label}</CardDescription>
-            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">{value}</CardTitle>
-            <CardAction>
-              <Icon className="size-4 text-muted-foreground" aria-hidden />
-            </CardAction>
-          </CardHeader>
-          <CardFooter className="px-4 text-xs text-muted-foreground sm:px-5 sm:text-sm">{note}</CardFooter>
-        </Card>
+        <div key={label} data-slot="card" className="flex min-w-0 flex-col gap-0.5 bg-card px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span data-slot="card-description" className="truncate">{label}</span>
+            <Icon className="size-3.5 shrink-0" aria-hidden />
+          </div>
+          <div data-slot="card-title" className="text-lg leading-tight font-semibold tabular-nums">{value}</div>
+          <div className="truncate text-[11px] text-muted-foreground" title={note}>{note}</div>
+        </div>
       ))}
     </section>
   )

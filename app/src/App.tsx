@@ -159,7 +159,7 @@ export default function App() {
       >
         <CurrencySelect />
       </SiteHeader>
-      <main className="mx-auto flex max-w-screen-2xl flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6">
+      <main className="mx-auto flex max-w-screen-2xl flex-col gap-3 px-3 py-3 lg:px-4">
         {data.state === "error" && (
           <Alert variant="destructive">
             <CircleAlertIcon />
@@ -191,26 +191,34 @@ export default function App() {
           <LoadingView />
         ) : data.leads.length ? (
           <>
-            <FilterBar
-              filters={filters}
-              owners={owners}
-              onChange={patch}
-              onReset={() => setFilters(EMPTY_FILTERS)}
-              onExport={exportCsv}
-              onNew={() => setNewOpen(true)}
-            />
-            <SectionCards k={kpis(rows)} days={filters.days} />
-            <AlertsBar counts={alertCounts(quickBase)} total={quickBase.length} value={filters.quick} onChange={(quick) => patch({ quick })} />
-            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
-              <WeeklyChart data={weeklyBuckets(rows, filters.days, now)} />
-              <SourceChart
-                data={sourceBreakdown(rows)}
-                selected={filters.source}
-                onSelect={(s) => patch({ source: filters.source === s ? "" : s })}
+            {/* Control strip: filters and quick filters together (SPEC.md, "המסך"). */}
+            <div className="flex flex-col gap-3 rounded-lg border bg-card p-3 shadow-xs">
+              <FilterBar
+                filters={filters}
+                owners={owners}
+                onChange={patch}
+                onReset={() => setFilters(EMPTY_FILTERS)}
+                onExport={exportCsv}
+                onNew={() => setNewOpen(true)}
               />
-              <FunnelChart data={funnel(rows)} />
+              <div className="border-t pt-3">
+                <AlertsBar counts={alertCounts(quickBase)} total={quickBase.length} value={filters.quick} onChange={(quick) => patch({ quick })} />
+              </div>
             </div>
-            <LeadsTable rows={rows} sorting={sorting} onSortingChange={setSorting} onOpen={setOpenId} />
+            <SectionCards k={kpis(rows)} days={filters.days} />
+            {/* Work area: the leads table leads, charts sit in a narrow column beside it on wide screens. */}
+            <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-[minmax(0,1fr)_380px]">
+              <LeadsTable rows={rows} sorting={sorting} onSortingChange={setSorting} onOpen={setOpenId} />
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-1">
+                <WeeklyChart data={weeklyBuckets(rows, filters.days, now)} />
+                <SourceChart
+                  data={sourceBreakdown(rows)}
+                  selected={filters.source}
+                  onSelect={(s) => patch({ source: filters.source === s ? "" : s })}
+                />
+                <FunnelChart data={funnel(rows)} />
+              </div>
+            </div>
           </>
         ) : null}
       </main>
